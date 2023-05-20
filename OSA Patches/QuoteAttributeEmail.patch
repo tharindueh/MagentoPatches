@@ -1,0 +1,166 @@
+Index: Model/Email/Sender.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/RequestQuote/Model/Email/Sender.php b/app/code/Amasty/RequestQuote/Model/Email/Sender.php
+--- a/app/code/Amasty/RequestQuote/Model/Email/Sender.php	(revision 53291ca184c3e3013cb0e9548ea5454b9e58b5f6)
++++ b/app/code/Amasty/RequestQuote/Model/Email/Sender.php	(date 1662403992013)
+@@ -236,6 +236,24 @@
+             ],
+             $notificationTemplateId
+         );
++
++        if ($quote->getExtensionAttributes()->getQuoteEntity() != null && $quote->getExtensionAttributes()->getQuoteEntity()->getDealerEmail()) {
++            $this->sendEmail(
++                Data::CONFIG_PATH_DEALER_APPROVE_EMAIL,
++                $quote->getExtensionAttributes()->getQuoteEntity()->getDealerEmail(),
++                [
++                    'viewUrl' => $this->urlResolver->getViewUrl((int) $quote->getId(), ['_nosid' => true]),
++                    'quote' => $quote,
++                    'dealerName' => $quote->getExtensionAttributes()->getQuoteEntity()->getDealerName() ?? '',
++                    'store' => $quote->getStore(),
++                    'expiredDate' => $this->getExpiredDate($quote),
++                    'remarks' => $this->retrieveCustomerNote($quote->getRemarks()),
++                    'adminRemarks' => $this->retrieveAdminNote($quote->getRemarks())
++                ],
++                $notificationTemplateId
++            );
++        }
++
+         $this->storeEmulation->stopEnvironmentEmulation();
+         $this->helper->clearScopeUrl();
+ 
+Index: Helper/Data.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/RequestQuote/Helper/Data.php b/app/code/Amasty/RequestQuote/Helper/Data.php
+--- a/app/code/Amasty/RequestQuote/Helper/Data.php	(revision 53291ca184c3e3013cb0e9548ea5454b9e58b5f6)
++++ b/app/code/Amasty/RequestQuote/Helper/Data.php	(date 1662403264980)
+@@ -41,6 +41,7 @@
+     public const CONFIG_PATH_CUSTOMER_CANCEL_EMAIL = 'amasty_request_quote/customer_notifications/customer_template_cancel';
+     public const CONFIG_PATH_CUSTOMER_EXPIRED_EMAIL = 'amasty_request_quote/customer_notifications/customer_template_expired';
+     public const CONFIG_PATH_CUSTOMER_REMINDER_EMAIL = 'amasty_request_quote/customer_notifications/customer_template_reminder';
++    public const CONFIG_PATH_DEALER_APPROVE_EMAIL = 'amasty_request_quote/dealer_notifications/dealer_template_approve';
+     // @codingStandardsIgnoreEnd
+ 
+     public const CONFIG_PATH_CUSTOMER_OPTION_NAME_PREFIX = 'customer/address/prefix_show';
+Index: etc/email_templates.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/RequestQuote/etc/email_templates.xml b/app/code/Amasty/RequestQuote/etc/email_templates.xml
+--- a/app/code/Amasty/RequestQuote/etc/email_templates.xml	(revision 53291ca184c3e3013cb0e9548ea5454b9e58b5f6)
++++ b/app/code/Amasty/RequestQuote/etc/email_templates.xml	(date 1662403944089)
+@@ -13,4 +13,5 @@
+     <template id="amasty_request_quote_customer_notifications_customer_template_cancel" label="Canceled Quote Customer Notification" file="amquote_customer_requests_notify_cancel_template.html" type="html" module="Amasty_RequestQuote" area="frontend"/>
+     <template id="amasty_request_quote_customer_notifications_customer_template_expired" label="Expired Quote Customer Notification" file="amquote_customer_requests_notify_expired_template.html" type="html" module="Amasty_RequestQuote" area="frontend"/>
+     <template id="amasty_request_quote_customer_notifications_customer_template_reminder" label="Reminder Quote Customer Notification" file="amquote_customer_requests_notify_reminder_template.html" type="html" module="Amasty_RequestQuote" area="frontend"/>
++    <template id="amasty_request_quote_dealer_notifications_dealer_template_approve" label="Approved Quote Dealer Notification" file="amquote_dealer_requests_notify_approve_template.html" type="html" module="Amasty_RequestQuote" area="frontend"/>
+ </config>
+Index: etc/adminhtml/system.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/RequestQuote/etc/adminhtml/system.xml b/app/code/Amasty/RequestQuote/etc/adminhtml/system.xml
+--- a/app/code/Amasty/RequestQuote/etc/adminhtml/system.xml	(revision 53291ca184c3e3013cb0e9548ea5454b9e58b5f6)
++++ b/app/code/Amasty/RequestQuote/etc/adminhtml/system.xml	(date 1662406063666)
+@@ -243,6 +243,17 @@
+                     </depends>
+                 </field>
+             </group>
++            <group id="dealer_notifications" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
++                <label>Dealer Notifications</label>
++                <field id="dealer_template_approve" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
++                    <label>Email Template for Approved Quote</label>
++                    <source_model>Amasty\RequestQuote\Model\Source\Email\Customer\Approve</source_model>
++                </field>
++                <field id="sender_email_identity" translate="label comment" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
++                    <label>Email Sender</label>
++                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
++                </field>
++            </group>
+             <group id="pdf" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1"
+                    showInStore="1">
+                 <label>PDF</label>
+Index: view/frontend/email/amquote_dealer_requests_notify_approve_template.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/RequestQuote/view/frontend/email/amquote_dealer_requests_notify_approve_template.html b/app/code/Amasty/RequestQuote/view/frontend/email/amquote_dealer_requests_notify_approve_template.html
+new file mode 100755
+--- /dev/null	(date 1662408078907)
++++ b/app/code/Amasty/RequestQuote/view/frontend/email/amquote_dealer_requests_notify_approve_template.html	(date 1662408078907)
+@@ -0,0 +1,49 @@
++<!-- phpcs:ignoreFile because quote_attributes variable added dynamically -->
++<!--@subject {{trans "Email alert for approved quote requests"}} @-->
++<!--@vars
++{
++"var viewUrl":"Url for view quote",
++"var dealerName":"Dealer Name",
++"var expiredDate":"Expired Date",
++"var remarks":"Email Quote Note",
++"var adminRemarks":"Email Quote Admin Note",
++"var store.getFrontendName()":"Store Name",
++"var remarks|escape|nl2br":"Customer Remarks",
++"var adminRemarks|escape|nl2br":"Admin Remarks"
++}
++@-->
++{{template config_path="design/email/header_template"}}
++
++<p>{{trans "Dear %name," name=$dealerName}}</p>
++<p>{{trans "Your quote request from %store_name has been approved. You can check the status of your quote request and proceed to checkout by " store_name=$store.getFrontendName()}}<a href="{{var viewUrl}}">{{trans "logging into your account"}}.</a></p>
++{{depend expiredDate}}
++<p>{{trans "The Quote Proposal will expire on %expiredDate" expiredDate=$expiredDate}}</p>
++{{/depend}}
++<p>{{trans "Thank you!"}}</p>
++{{depend remarks}}
++<table class="message-info">
++    <tr>
++        <td>
++            {{var remarks|escape|nl2br}}
++        </td>
++    </tr>
++</table>
++{{/depend}}
++</br>
++{{depend adminRemarks}}
++<table class="message-info">
++    <tr>
++        <td>
++            {{var adminRemarks|escape|nl2br}}
++        </td>
++    </tr>
++</table>
++{{/depend}}
++</br>
++{{depend quote_attributes}}
++<div class="amquote-table-list">
++    {{var quote_attributes|raw}}
++</div>
++{{/depend}}
++</br>
++{{template config_path="design/email/footer_template"}}
+Index: etc/config.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/RequestQuote/etc/config.xml b/app/code/Amasty/RequestQuote/etc/config.xml
+--- a/app/code/Amasty/RequestQuote/etc/config.xml	(revision 53291ca184c3e3013cb0e9548ea5454b9e58b5f6)
++++ b/app/code/Amasty/RequestQuote/etc/config.xml	(date 1662407100918)
+@@ -24,6 +24,9 @@
+             <customer_notifications>
+                 <enable_notifications>1</enable_notifications>
+             </customer_notifications>
++            <dealer_notifications>
++                <sender_email_identity>general</sender_email_identity>
++            </dealer_notifications>
+         </amasty_request_quote>
+         <crontab>
+             <default>

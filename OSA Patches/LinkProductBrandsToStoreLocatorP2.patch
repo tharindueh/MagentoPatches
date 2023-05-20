@@ -1,0 +1,40 @@
+#====================================================================================================================================================#
+#                This is a patch file. You can apply it using "patch -p2 < diff.patch" or revert it using "patch -R -p2 < diff.patch"                #
+#                                                        (c) Created by Amasty Team 06-09-2022                                                       #
+#====================================================================================================================================================#
+diff --git a/app/code/Amasty/Storelocator/Block/Location.php b/app/code/Amasty/Storelocator/Block/Location.php
+index 432cbd7..59fd9a0 100644
+--- a/app/code/Amasty/Storelocator/Block/Location.php
++++ b/app/code/Amasty/Storelocator/Block/Location.php
+@@ -614,8 +614,8 @@ class Location extends Template implements BlockInterface, IdentityInterface
+             ['_query' => $params]
+         );
+ 
+-        if ($this->getProduct()->getAttributeCode()) {
+-            $uri .= '&brand=' . $this->getProduct()->getAttributeCode();
++        if ($this->getProduct()->getBrand()) {
++            $uri .= '&brand=' . $this->getProduct()->getBrand();
+         }
+ 
+         return $uri;
+diff --git a/app/design/frontend/Emmpressit/osa/Amasty_Storelocator/web/js/main.js b/app/design/frontend/Emmpressit/osa/Amasty_Storelocator/web/js/main.js
+index 70b6464..d2c94ea 100644
+--- a/app/design/frontend/Emmpressit/osa/Amasty_Storelocator/web/js/main.js
++++ b/app/design/frontend/Emmpressit/osa/Amasty_Storelocator/web/js/main.js
+@@ -327,6 +327,16 @@ define([
+             });
+ 
+             self.mapContainer.find(this.selectors.resetSelector).on('click', this.resetMap.bind(this));
++
++            if (window.location.search.includes('&brand=')) {
++                let attribute = window.location.search.substr(1).split('&')[1];
++                let selectAttr = attribute.split('=')[0];
++                let selectVal = attribute.split('=')[1];
++                let attrForm = $('[data-amlocator-js=\"attributes-form\"]');
++                attrForm[0].reset();
++                attrForm.find('[data-attrcode="' + selectAttr +'"]').val(selectVal).trigger('chosen:updated');
++                self.makeAjaxCall();
++            }
+         },
+ 
+         toggleFilters: function () {

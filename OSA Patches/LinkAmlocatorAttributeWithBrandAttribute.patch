@@ -1,0 +1,66 @@
+Index: Observer/Admin/AttributeSaveAfter.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/ShopbyBrand/Observer/Admin/Observer/Admin/AttributeSaveAfter.php b/app/code/Amasty/ShopbyBrand/Observer/Admin/Observer/Admin/AttributeSaveAfter.php
+--- a/app/code/Amasty/ShopbyBrand/Observer/Admin/Observer/Admin/AttributeSaveAfter.php	(revision 117315a5c8bcad847317b20a67f8d528c7c2500f)
++++ b/app/code/Amasty/ShopbyBrand/Observer/Admin/Observer/Admin/AttributeSaveAfter.php	(date 1661259623162)
+@@ -13,6 +13,8 @@
+ use Amasty\ShopbyBrand\Helper\Data as BrandHelper;
+ use Amasty\ShopbyBrand\Model\Brand\OptionsUpdater;
+ use Amasty\ShopbyBrand\Model\ConfigProvider;
++use Amasty\Storelocator\Model\AttributeFactory;
++use Amasty\Storelocator\Model\ResourceModel\Attribute;
+ use Magento\Framework\App\Config\ScopeConfigInterface;
+ use Magento\Framework\Event\Observer;
+ use Magento\Framework\Event\ObserverInterface;
+@@ -31,12 +31,26 @@
+      */
+     private $configProvider;
+ 
++    /**
++     * @var Attribute
++     */
++    private $attributeResourceModel;
++
++    /**
++     * @var AttributeFactory
++     */
++    private $attributeFactory;
++
+     public function __construct(
+         OptionsUpdater $optionsUpdater,
+-        ConfigProvider $configProvider
++        ConfigProvider $configProvider,
++        Attribute      $attributeResourceModel,
++        AttributeFactory $attributeFactory,
+     ) {
+         $this->optionsUpdater = $optionsUpdater;
+         $this->configProvider = $configProvider;
++        $this->attributeResourceModel = $attributeResourceModel;
++        $this->attributeFactory = $attributeFactory;
+     }
+ 
+     /**
+@@ -40,6 +56,20 @@
+             $observer->getEvent()->getAttribute()->getAttributeCode(),
+             $this->configProvider->getAllBrandAttributeCodes()
+         )) {
++
++            $model = $this->attributeFactory->create();
++            $brandAttribute = $observer->getEvent()->getAttribute();
++
++            if ($brandAttribute->getAttributeCode() === 'manufacturer') {
++                $this->attributeResourceModel->load($model, $brandAttribute->getAttributeCode(), 'attribute_code');
++
++                if ($model->getId()) {
++                    $model->setStoreLabels($brandAttribute->getStoreLabels());
++                    $model->setOption($brandAttribute->getOption());
++                    $this->attributeResourceModel->saveOptions($model, $model->getId());
++                }
++            }
++
+             $this->optionsUpdater->execute(
+                 $observer->getEvent()->getAttribute()->getAttributeCode()
+             );

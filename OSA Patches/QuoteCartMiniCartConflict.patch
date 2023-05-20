@@ -1,0 +1,70 @@
+#====================================================================================================================================================#
+#                This is a patch file. You can apply it using "patch -p2 < diff.patch" or revert it using "patch -R -p2 < diff.patch"                #
+#                                                        (c) Created by Amasty Team 26-09-2022                                                       #
+#====================================================================================================================================================#
+diff --git a/app/design/frontend/Emmpressit/osa/Amasty_RequestQuote/templates/cart/quotecart.phtml b/app/design/frontend/Emmpressit/osa/Amasty_RequestQuote/templates/cart/quotecart.phtml
+index e69de29..c8bd5f2 100644
+--- a/app/design/frontend/Emmpressit/osa/Amasty_RequestQuote/templates/cart/quotecart.phtml
++++ b/app/design/frontend/Emmpressit/osa/Amasty_RequestQuote/templates/cart/quotecart.phtml
+@@ -0,0 +1,61 @@
++<?php
++/**
++ * @author Amasty Team
++ * @copyright Copyright (c) 2022 Amasty (https://www.amasty.com)
++ * @package Request a Quote Base for Magento 2
++ */
++?>
++<?php
++/** @var $block \Amasty\RequestQuote\Block\Cart\Sidebar */
++
++$isLoggedIn = $block->isLoggedIn();
++?>
++<?php if ($isLoggedIn): ?>
++    <div data-block="quotecart" class="amquote-cart-wrapper minicart-wrapper">
++        <a class="amquote-showcart action" href="<?= /* @noEscape */ $block->getQuoteCartUrl() ?>"
++           data-bind="scope: 'quotecart_content'" title="<?= /* @noEscape */ __('My Quote') ?>">
++            <span class="text"><?= /* @noEscape */ __('My Quote') ?></span>
++            <span class="counter qty empty"
++                  data-bind="css: { empty: !!getCartParam('summary_count') == false }, blockLoader: isLoading">
++            <span class="counter-number"><!-- ko text: getCartParam('summary_count') --><!-- /ko --></span>
++            <span class="counter-label">
++            <!-- ko if: getCartParam('summary_count') -->
++                <!-- ko text: getCartParam('summary_count') --><!-- /ko -->
++                <!-- ko i18n: 'items' --><!-- /ko -->
++                <!-- /ko -->
++            </span>
++        </span>
++        </a>
++        <div class="block block-quotecart block-minicart"
++             data-role="dropdownDialog"
++             data-mage-init='{"dropdownDialog":{
++                "appendTo":"[data-block=quotecart]",
++                "triggerTarget":".amquote-showcart",
++                "timeout": "2000",
++                "closeOnMouseLeave": false,
++                "closeOnEscape": true,
++                "triggerClass":"-active",
++                "parentClass":"-active",
++                "buttons":[]}}'>
++            <div id="quotecart-content-wrapper" data-bind="scope: 'quotecart_content'">
++                <!-- ko template: getTemplate() --><!-- /ko -->
++            </div>
++            <?= $block->getChildHtml('quotecart.addons') ?>
++        </div>
++
++        <script>
++            window.amasty_quote_cart = <?= /* @noEscape */ $block->getSerializedConfig() ?>;
++        </script>
++
++        <script type="text/x-magento-init">
++    {
++        "[data-block='quotecart']": {
++            "Magento_Ui/js/core/app": {"components":{"quotecart_content":{"component":"Amasty_RequestQuote\/js\/view\/quotecart","config":{"template":"Amasty_RequestQuote\/quotecart\/content","itemRenderer":{"default":"defaultRenderer","simple":"defaultRenderer","virtual":"defaultRenderer"}},"children":{"item.renderer":{"component":"Magento_Checkout\/js\/view\/cart-item-renderer","config":{"displayArea":"defaultRenderer","template":"Magento_Checkout\/minicart\/item\/default"},"children":{"checkout.cart.item.price.sidebar":{"component":"uiComponent","config":{"template":"Magento_Checkout\/minicart\/item\/price","displayArea":"priceSidebar"}},"item.image":{"component":"Magento_Catalog\/js\/view\/image","config":{"template":"Magento_Catalog\/product\/image","displayArea":"itemImage"}}}},"extra_info":{"component":"uiComponent","config":{"displayArea":"extraInfo"}},"promotion":{"component":"uiComponent","config":{"displayArea":"promotion"}}}}},"types":[]}
++        },
++        "*": {
++            "Magento_Ui/js/block-loader": "<?= /* @noEscape */ $block->getViewFileUrl('images/loader-1.gif') ?>"
++        }
++    }
++    </script>
++    </div>
++<?php endif; ?>

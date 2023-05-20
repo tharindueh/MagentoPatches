@@ -1,0 +1,35 @@
+diff --git a/app/code/Amasty/RequestQuote/Block/Quote/Success.php b/Block/Quote/Success.php
+index b5540b7..9b1df41 100755
+--- a/app/code/Amasty/RequestQuote/Block/Quote/Success.php
++++ b/app/code/Amasty/RequestQuote/Block/Quote/Success.php
+@@ -65,7 +65,9 @@ class Success extends \Magento\Framework\View\Element\Template
+                     'is_quote_visible' => $this->isVisible($quote),
+                     'view_quote_url'   => $this->urlResolver->getViewUrl((int) $quote->getId()),
+                     'can_view_quote'   => $this->canViewQuote($quote),
+-                    'quote_id'         => $quote->prepareIncrementId()
++                    'quote_id'         => $quote->prepareIncrementId(),
++                    'customer_firstname' => $quote->getCustomerFirstname(),
++                    'customer_lastname' => $quote->getCustomerLastname()
+                 ]
+             );
+         }
+diff --git a/app/code/Amasty/RequestQuote/view/frontend/layout/amasty_quote_quote_success.xml b/app/code/Amasty/RequestQuote/view/frontend/layout/amasty_quote_quote_success.xml
+index 3adc926..d76a2e4 100755
+--- a/app/code/Amasty/RequestQuote/view/frontend/layout/amasty_quote_quote_success.xml
++++ b/app/code/Amasty/RequestQuote/view/frontend/layout/amasty_quote_quote_success.xml
+@@ -16,6 +16,7 @@
+             <action method="setPageTitle">
+                 <argument translate="true" name="title" xsi:type="string">Your quote request has been received!</argument>
+             </action>
++            <block class="Amasty\RequestQuote\Block\Quote\Success" name="quote.success.user.thank" template="Amasty_RequestQuote::quote/thank.phtml"/>
+         </referenceBlock>
+         <referenceContainer name="content">
+             <block class="Amasty\RequestQuote\Block\Quote\Success" name="quote.success" template="Amasty_RequestQuote::quote/success.phtml" cacheable="false">
+diff --git a/app/code/Amasty/RequestQuote//view/frontend/templates/quote/thank.phtml b/app/code/Amasty/RequestQuote//view/frontend/templates/quote/thank.phtml
+index e69de29..fa59780 100755
+--- a/app/code/Amasty/RequestQuote/view/frontend/templates/quote/thank.phtml
++++ b/app/code/Amasty/RequestQuote/view/frontend/templates/quote/thank.phtml
+@@ -0,0 +1,3 @@
++<?php /** @var $block \Amasty\RequestQuote\Block\Quote\Success */?>
++
++<h1> <?= __('Thank you') . ' ' . $block->getCustomerFirstname() . ' ' . $block->getCustomerLastname() ?> </h1>

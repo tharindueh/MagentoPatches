@@ -1,0 +1,67 @@
+Index: Block/Location.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/Storelocator/Block/Location.php b/app/code/Amasty/Storelocator/Block/Location.php
+--- a/app/code/Amasty/Storelocator/Block/Location.php	(revision 99fa9ae6c9cff6aafdec944d9b4358b512e3ad1c)
++++ b/app/code/Amasty/Storelocator/Block/Location.php	(date 1661862012541)
+@@ -621,10 +621,16 @@
+ 
+     public function getLinkToMap($params = [])
+     {
+-        return $this->getUrl(
++        $uri = $this->getUrl(
+             $this->configProvider->getUrl(),
+             ['_query' => $params]
+         );
++
++        if ($this->getProduct()->getManufacturer()) {
++            $uri .= '&manufacturer=' . $this->getProduct()->getManufacturer();
++        }
++
++        return $uri;
+     }
+ 
+     public function getQueryString()
+Index: view/frontend/templates/center.phtml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/Storelocator/view/frontend/templates/center.phtml b/app/code/Amasty/Storelocator/view/frontend/templates/center.phtml
+--- a/app/code/Amasty/Storelocator/view/frontend/templates/center.phtml	(revision 99fa9ae6c9cff6aafdec944d9b4358b512e3ad1c)
++++ b/app/code/Amasty/Storelocator/view/frontend/templates/center.phtml	(date 1661863375097)
+@@ -111,6 +111,7 @@
+                                         <div class="amlocator-input">
+                                             <select name="<?= (int)$attribute['attribute_id'];?>"
+                                                     class="amlocator-select"
++                                                    data-attrCode="<?= $attribute['attribute_code']; ?>"
+                                                 <?php if ($attribute['frontend_input'] == 'multiselect'): ?>
+                                                     multiple="multiple"
+                                                     data-amlocator-js="multiple-select"
+Index: view/frontend/web/js/main.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/code/Amasty/Storelocator/view/frontend/web/js/main.js b/app/code/Amasty/Storelocator/view/frontend/web/js/main.js
+--- a/app/code/Amasty/Storelocator/view/frontend/web/js/main.js	(revision 99fa9ae6c9cff6aafdec944d9b4358b512e3ad1c)
++++ b/app/code/Amasty/Storelocator/view/frontend/web/js/main.js	(date 1661863468216)
+@@ -330,6 +330,16 @@
+             });
+ 
+             self.mapContainer.find(this.selectors.resetSelector).on('click', this.resetMap.bind(this));
++
++            if (window.location.search.includes('&manufacturer=')) {
++                let attribute = window.location.search.substr(1).split('&')[1];
++                let selectAttr = attribute.split('=')[0];
++                let selectVal = attribute.split('=')[1];
++                let attrForm = $('[data-amlocator-js=\"attributes-form\"]');
++                attrForm[0].reset();
++                attrForm.find('[data-attrcode="' + selectAttr +'"]').val(selectVal).trigger('chosen:updated');
++                self.makeAjaxCall();
++            }
+         },
+ 
+         toggleFilters: function () {

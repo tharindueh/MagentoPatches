@@ -1,0 +1,28 @@
+diff --git a/app/code/Magezon/CategoryPageBuilder/view/frontend/templates/product/list.phtml b/app/code/Magezon/CategoryPageBuilder/view/frontend/templates/product/list.phtml
+index b5540b7..9b1df41 143755
+--- a/app/code/Magezon/CategoryPageBuilder/view/frontend/templates/product/list.phtml
++++ b/app/code/Magezon/CategoryPageBuilder/view/frontend/templates/product/list.phtml
+@@ -70,6 +70,17 @@
+                         <?= $productImage->toHtml() ?>
+                     </a>
+                     <div class="product details product-item-details">
++						<!--Product Brand -->
++							<?php 
++							$brand = $_product->getAttributeText('brand');
++							if (!empty($brand)) {
++								$brand = strtolower($brand);
++								$brand = str_replace(' ', '_', $brand);
++								$brand = str_replace('&', '_', $brand);
++								$brand = str_replace('-', '_', $brand);
++							?>
++							<a class="product-brand-category" href="/brands/<?php echo $brand; ?>/">
++								<?php echo $_product->getAttributeText('brand') ?>
++							</a>
++							<?php 
++							}
++							?>
++						<!--Product Brand -->
+                         <?php if ($productName) { ?>
+                             <?php
+                                 $_productNameStripped = $block->stripTags($_product->getName(), null, true);
+ 
